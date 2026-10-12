@@ -1,59 +1,47 @@
 ---
 name: kvm-relay
-description: Procedure for relaying a user prompt through the NanoKVM built-in MCP server (cube_* tools) to Antigravity (desktop app or agy CLI) on the remote Mac and reading the output back. Use for every user message in this project.
+description: How to drive agy (Antigravity CLI) or the Antigravity desktop app on the remote Mac through the NanoKVM built-in MCP server (cube_* tools), using the kvm-agy helper to get clean, pageable output. Use whenever typing into, waiting on, or reading the remote Mac.
 ---
 
-# KVM relay procedure
+# Driving agy on the remote Mac through the NanoKVM
 
-Target: macOS via the NanoKVM firmware's built-in MCP server (`mcp__nanokvm__cube_*`).
-Default target is the **agy CLI in Terminal** (cheapest to read). Use the Antigravity desktop app only when the user says "desktop" / `/agy-desktop`.
-
-## Tools (built-in NanoKVM MCP)
+## Tools (NanoKVM firmware MCP; server prefix may vary, tool names don't)
 | Tool | Args |
 |---|---|
-| `cube_type_text` | `text` (≤1000 chars), `delayMs` (0–1000, default 30) |
-| `cube_press_keys` | `keys`: one shortcut as KeyboardEvent.code names, e.g. `["MetaLeft","Space"]`; `holdMs` |
-| `cube_screenshot` | `quality` (device clamps to 51–60), `timeoutMs` |
-| `cube_move_mouse` | `mode:"absolute"`, `x`,`y` **normalized 0–1**; or `mode:"relative"`, `deltaX`/`deltaY` |
-| `cube_click_mouse` | `button`, `mode:"absolute"`, `x`,`y` (0–1); or `mode:"relative"` with no coords |
-| `cube_scroll_mouse` | `deltaY` (positive = down) |
+| `cube_type_text` | `text` ≤1000 chars (`\n` = Enter; non-US-ASCII chars are skipped), `delayMs` (default 30) |
+| `cube_press_keys` | `keys`: one combo of KeyboardEvent.code names, e.g. `["MetaLeft","Space"]` |
+| `cube_screenshot` | `quality` (device clamps 51–60) |
+| `cube_move_mouse` / `cube_click_mouse` | `mode:"absolute"`, `x`,`y` as **0–1 fractions** of the screen |
+| `cube_scroll_mouse` | `deltaY` (+ = down) |
 
-Key names: `MetaLeft` (Cmd), `ControlLeft`, `AltLeft` (Option), `ShiftLeft`, `Enter`, `Escape`, `Tab`, `Space`, `Backspace`, `ArrowUp/Down/Left/Right`, `PageUp/PageDown`, `KeyA`–`KeyZ`, `Digit0`–`Digit9`, `F1`–`F12`.
-Examples: Cmd+Space `["MetaLeft","Space"]`, Ctrl+C `["ControlLeft","KeyC"]`, Cmd+Tab `["MetaLeft","Tab"]`.
+Keys: `MetaLeft` (Cmd), `ControlLeft`, `AltLeft`, `ShiftLeft`, `Enter`, `Escape`, `Tab`, `Space`, `Backspace`, `ArrowUp`…, `KeyA`–`KeyZ`, `Digit0`–`Digit9`.
 
-## Screenshots (the only return channel — keep them rare)
-- `cube_screenshot(quality=51)`. One per check; never after every keystroke.
-- Mouse coords are fractions of the screen: x = px / image_width, y = px / image_height. Prefer keyboard over mouse.
+## The helper: `~/.agy-relay/kvm-agy`
+Installed on the Mac (see `/kvm-setup`). Every screen it draws ends with a status line:
+- `== KVM-AGY INPUT … ==`: waiting for prompt lines, ends at a line `::end`
+- `== KVM-AGY WORKING 42s == <last progress line>`: agy is running
+- `== KVM-AGY DONE exit=0 97s | page 3/3 ==`: finished; screen shows the **last page** of output
 
-## Focusing an app (keyboard only)
-`cube_press_keys(["MetaLeft","Space"])` → `cube_type_text("Terminal")` (or `"Antigravity"`) → `cube_press_keys(["Enter"])`.
-Only re-focus if the last screenshot shows the wrong app.
+It runs `agy --dangerously-skip-permissions -p "<prompt>"` and adds `-c` automatically after the first run in a folder, so agy keeps the conversation going for that project.
+If a screenshot shows `command not found` / `No such file` for the helper, stop and return `kvm-agy helper not installed; run /kvm-setup`.
 
-## Switch project (CLI)
-1. Focus Terminal. If an agy session is running, exit it first (`/exit` + Enter, or Ctrl+C twice) so you're at a shell prompt.
-2. Resolve the path: a "Known projects" entry from CLAUDE.md, else `<projects root>/<name>`.
-3. Type `cd "<path>" && clear && pwd`, Enter. Screenshot once.
-   - If it says "No such file or directory": type `ls <projects root>`, Enter, screenshot, show the user the list and ask which one. Don't guess.
-4. Type `agy --dangerously-skip-permissions`, Enter; wait for its prompt (one screenshot).
-5. If the user gave a task with the switch, send it now as below.
-Reply to the user with one line: `In <path>, agy ready.` plus agy's output if a task was sent.
+## Procedure
+0. **Focus Terminal** only if the last screenshot (or none yet this session) suggests it isn't in front: `["MetaLeft","Space"]`, type `Terminal`, `["Enter"]`. A black screen means the Mac is asleep: press `["ShiftLeft"]` and screenshot again.
+1. **cwd** (if given and not "unchanged"): type `cd "<path>" && clear && pwd\n`. On `No such file or directory`, type `ls <projects root>\n`, screenshot, and return the folder list asking which one. Never guess.
+2. **ask**: type `~/.agy-relay/kvm-agy ask\n`, then the text, then `\n::end\n`.
+   - Text over 1000 chars: send it in ≤1000-char chunks, splitting at whitespace.
+   - ASCII normalization only: curly quotes → straight, en/em dash → `-`, ellipsis → `...`, nbsp → space. If other non-ASCII characters are present, mention in the status line that they were dropped.
+   - Don't screenshot while typing.
+3. **Wait**: `sleep` 15, then `cube_screenshot`. While it shows `WORKING`, sleep with backoff (30, 60, 60, 120 … capped at 120s) and screenshot again. Report nothing in between.
+4. **Read**: on `DONE`, transcribe the output text above the status line exactly (code stays code). Don't summarize. Return it plus the status line.
+5. **page N**: type `~/.agy-relay/kvm-agy page N\n`, one screenshot, transcribe.
+6. **new**: type `~/.agy-relay/kvm-agy new\n`. Return `new conversation on next ask`.
+7. **cd** (switch only): after step 1, return `in <path>`.
 
-## Switch project (desktop)
-Focus Antigravity, Cmd+O (`["MetaLeft","KeyO"]`), Cmd+Shift+G (`["MetaLeft","ShiftLeft","KeyG"]`), type the path, Enter, Enter. Screenshot once to confirm, then send any task in the agent chat.
+If the screen shows anything unexpected (dialog, password prompt, macOS alert, agy login/auth request), don't click through it: return a one-line description of exactly what it says.
 
-## CLI (agy in Terminal)
-- If a shell prompt is showing (no agy session): type `agy --dangerously-skip-permissions`, `Enter`, wait for its prompt. Always launch agy with this flag.
-- Send the user's text with `cube_type_text` (split into ≤1000-char chunks, `delayMs: 10` for long text). Join multi-line text with spaces unless agy shows a multi-line convention. Then `cube_press_keys(["Enter"])`.
-- Wait, then screenshot. If agy is still working (spinner / thinking / streaming), wait longer and screenshot again. Back off; don't poll rapidly.
-- When idle, transcribe only the **new** output since the prompt. If it ran off-screen, `cube_scroll_mouse(deltaY=-5)` and stitch; report once.
-- If agy asks for approval/confirmation, show the user the exact question and options; send their answer as-is.
+## Desktop app (only when asked)
+Focus `Antigravity` via Spotlight. Screenshot once and find the agent chat input; click it (`cube_click_mouse` with fractions = pixel / image size). Type the text (use `["ShiftLeft","Enter"]` for line breaks; a bare `\n` sends early), then `["Enter"]`. Wait as in step 3 until the reply stops changing between two screenshots, then transcribe only the agent's reply. Scroll with `cube_scroll_mouse` if needed.
 
-## Desktop (Antigravity app)
-- Click the agent chat input once (remember its normalized coords for the session), type, `Enter`, then wait/read as above, transcribing only the agent's reply.
-
-## Special keys the user may ask for
-ctrl+c → `["ControlLeft","KeyC"]`, esc → `["Escape"]`, y/n → `cube_type_text`, history → `["ArrowUp"]`.
-Tool errors about control mode / lease: the NanoKVM MCP is disabled or another controller (web UI, PicoClaw) holds input — tell the user.
-
-## Reply format to the user
-Plain transcription of target output in a code block, plus at most one status line (e.g. "agy waiting for approval"). Nothing else.
+## Interactive agy TUI (fallback if the helper can't be used)
+`agy --dangerously-skip-permissions` in Terminal. Newline in the input = `["ShiftLeft","Enter"]`, submit = `["Enter"]`, half-page scroll = `["ControlLeft","KeyU"]` / `["ControlLeft","KeyD"]`. It's done when the input prompt returns and nothing is streaming.

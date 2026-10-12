@@ -2,6 +2,6 @@
 description: Send text to the Antigravity desktop agent on the remote Mac and return its reply
 argument-hint: <prompt>
 ---
-Relay via the kvm-relay skill, target **desktop**. Text to send verbatim:
+Delegate to `kvm-worker`: action `desktop`, text verbatim:
 
 $ARGUMENTS

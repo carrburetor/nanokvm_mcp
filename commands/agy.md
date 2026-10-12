@@ -1,7 +1,7 @@
 ---
-description: Send text to the agy CLI on the remote Mac and return its output
+description: Send text to agy on the remote Mac (current project) and return its output
 argument-hint: <prompt>
 ---
-Relay via the kvm-relay skill, target **cli**. Text to send verbatim:
+Delegate to `kvm-worker`: action `ask`, cwd `unchanged`, text verbatim:
 
 $ARGUMENTS

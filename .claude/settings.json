@@ -1,6 +1,10 @@
 {
-  "enableAllProjectMcpServers": true,
+  "agent": "kvm-relay",
   "permissions": {
-    "allow": ["mcp__nanokvm__*"]
+    "allow": [
+      "mcp__nanokvm__*",
+      "mcp__plugin_nanokvm-relay_nanokvm__*",
+      "Bash(sleep:*)"
+    ]
   }
 }

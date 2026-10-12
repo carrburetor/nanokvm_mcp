@@ -1,7 +1,7 @@
 ---
-description: Switch the remote Mac to a project folder and start agy (--dangerously-skip-permissions) there, optionally sending a task
+description: Switch the remote Mac to a project folder (agy keeps a conversation per folder), optionally sending a task
 argument-hint: <project-name> [task...]
 ---
-Use the kvm-relay skill's **Switch project (CLI)** steps. The first word is the project name. If there's anything after it, send it to agy verbatim as the task once agy is ready:
+First word = project name; resolve it with CLAUDE.md (known projects, else `<projects root>/<name>`). Delegate to `kvm-worker`: cwd = that path; action `ask` with the rest as verbatim text, or action `cd` if nothing follows.
 
 $ARGUMENTS

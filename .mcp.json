@@ -1,9 +1,0 @@
-{
-  "mcpServers": {
-    "nanokvm": {
-      "type": "http",
-      "url": "${NANOKVM_URL}/api/mcp",
-      "headers": { "Authorization": "Bearer ${NANOKVM_MCP_KEY}" }
-    }
-  }
-}

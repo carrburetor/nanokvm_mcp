@@ -1,0 +1,81 @@
+#!/bin/bash
+# kvm-agy: KVM-friendly wrapper around the agy CLI. Lives on the remote Mac.
+# Output is framed by "== KVM-AGY ... ==" lines so a screenshot shows state at a glance.
+#   kvm-agy ask        read prompt lines until a line "::end", run agy headless, show last page
+#   kvm-agy page [N]   show page N of the last output (default: last page)
+#   kvm-agy new        next ask in this directory starts a fresh agy conversation
+#   kvm-agy status     show the last run's status
+set -u
+DIR="$HOME/.agy-relay"
+mkdir -p "$DIR"
+LOG="$DIR/last.log"
+ERR="$DIR/last.err"
+STATUS="$DIR/last.status"
+STARTED="$DIR/started-$(printf '%s' "$PWD" | shasum | cut -c1-12)"
+
+rows() { echo $(( $(tput lines 2>/dev/null || echo 40) - 3 )); }
+cols() { tput cols 2>/dev/null || echo 120; }
+
+page() {
+  local per total n folded="$DIR/last.folded"
+  per=$(rows)
+  fold -s -w "$(cols)" "$LOG" > "$folded"
+  total=$(( ( $(wc -l < "$folded") + per - 1 ) / per ))
+  [ "$total" -lt 1 ] && total=1
+  n="${1:-$total}"
+  [ "$n" -gt "$total" ] && n=$total
+  [ "$n" -lt 1 ] && n=1
+  clear
+  sed -n "$(( (n - 1) * per + 1 )),$(( n * per ))p" "$folded"
+  echo "== KVM-AGY $(cat "$STATUS" 2>/dev/null) | page $n/$total =="
+}
+
+ask() {
+  local old line prompt="" pid rc t0
+  clear
+  echo "== KVM-AGY INPUT (end with a line ::end) =="
+  old=$(stty -g)
+  stty -icanon min 1 time 0   # no 1024-byte line limit
+  while IFS= read -r line; do
+    [ "$line" = "::end" ] && break
+    prompt+="$line"$'\n'
+  done
+  stty "$old"
+  if [ -z "${prompt//[[:space:]]/}" ]; then
+    echo "== KVM-AGY EMPTY PROMPT =="
+    return 1
+  fi
+
+  local args=(--dangerously-skip-permissions)
+  [ -f "$STARTED" ] && args+=(-c)
+  : > "$LOG"; : > "$ERR"
+  echo "WORKING" > "$STATUS"
+  t0=$SECONDS
+  agy "${args[@]}" -p "$prompt" > "$LOG" 2> "$ERR" &
+  pid=$!
+  trap 'kill $pid 2>/dev/null' INT
+  clear
+  while kill -0 "$pid" 2>/dev/null; do
+    printf '\r== KVM-AGY WORKING %ss == %s' "$(( SECONDS - t0 ))" "$(tail -n 1 "$ERR" 2>/dev/null | cut -c1-60)"
+    printf '\033[K'
+    sleep 2
+  done
+  wait "$pid"; rc=$?
+  trap - INT
+
+  if [ "$rc" -eq 0 ]; then
+    touch "$STARTED"
+  else
+    { echo; echo "--- agy stderr (last 20 lines) ---"; tail -n 20 "$ERR"; } >> "$LOG"
+  fi
+  echo "DONE exit=$rc $(( SECONDS - t0 ))s" > "$STATUS"
+  page
+}
+
+case "${1:-}" in
+  ask) ask ;;
+  page) page "${2:-}" ;;
+  new) rm -f "$STARTED"; echo "== KVM-AGY NEW CONVERSATION NEXT ==" ;;
+  status) echo "== KVM-AGY $(cat "$STATUS" 2>/dev/null || echo NONE) ==" ;;
+  *) sed -n '2,8p' "$0" ;;
+esac

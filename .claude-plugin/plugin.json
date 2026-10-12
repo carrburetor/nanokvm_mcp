@@ -1,6 +1,29 @@
 {
   "name": "nanokvm-relay",
-  "version": "0.3.0",
-  "description": "Thin relay: forward user prompts through a NanoKVM to Antigravity (desktop or agy CLI) on a remote MacBook and read the output back.",
-  "author": { "name": "carrburetor" }
+  "version": "0.4.0",
+  "description": "Relay prompts through a NanoKVM (built-in MCP) to Antigravity / agy on a remote Mac and read the output back.",
+  "author": { "name": "carrburetor" },
+  "repository": "https://github.com/carrburetor/nanokvm_mcp",
+  "userConfig": {
+    "nanokvm_url": {
+      "type": "string",
+      "title": "NanoKVM URL",
+      "description": "Base URL of the NanoKVM, e.g. http://192.168.1.50 (no trailing slash)",
+      "required": true
+    },
+    "nanokvm_mcp_key": {
+      "type": "string",
+      "title": "NanoKVM MCP API key",
+      "description": "From the NanoKVM web UI: Settings > MCP",
+      "sensitive": true,
+      "required": true
+    }
+  },
+  "mcpServers": {
+    "nanokvm": {
+      "type": "http",
+      "url": "${user_config.nanokvm_url}/api/mcp",
+      "headers": { "Authorization": "Bearer ${user_config.nanokvm_mcp_key}" }
+    }
+  }
 }
