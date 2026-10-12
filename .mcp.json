@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "nanokvm": {
+      "command": "uvx",
+      "args": ["--from", "git+https://github.com/scgreenhalgh/nanokvm-mcp", "nanokvm-mcp"],
+      "env": {
+        "NANOKVM_HOST": "${NANOKVM_HOST}",
+        "NANOKVM_USER": "${NANOKVM_USER:-admin}",
+        "NANOKVM_PASS": "${NANOKVM_PASS:-admin}",
+        "NANOKVM_SCREEN_WIDTH": "${NANOKVM_SCREEN_WIDTH:-1920}",
+        "NANOKVM_SCREEN_HEIGHT": "${NANOKVM_SCREEN_HEIGHT:-1080}"
+      }
+    }
+  }
+}

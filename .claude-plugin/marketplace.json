@@ -1,0 +1,7 @@
+{
+  "name": "nanokvm-relay",
+  "owner": { "name": "carrburetor" },
+  "plugins": [
+    { "name": "nanokvm-relay", "source": "./", "description": "NanoKVM -> Antigravity remote-control relay" }
+  ]
+}

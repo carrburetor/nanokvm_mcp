@@ -1,0 +1,7 @@
+{
+  "enableAllProjectMcpServers": true,
+  "permissions": {
+    "allow": ["mcp__nanokvm__*"],
+    "deny": ["mcp__nanokvm__nanokvm_power", "mcp__nanokvm__nanokvm_power_cycle", "mcp__nanokvm__nanokvm_mount_iso"]
+  }
+}
