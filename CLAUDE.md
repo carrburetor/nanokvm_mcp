@@ -6,6 +6,7 @@ All coding happens on the Mac in the **agy** CLI (Terminal) or the **Antigravity
 ## Remote Mac settings (edit these)
 - Projects root: `~/Projects`
 - Known projects (name → path, optional): none yet
+- agy launch command: always `agy --dangerously-skip-permissions` (never plain `agy`)
 
 ## How to treat every user message
 - "go to / open / switch to project X" → run the **Switch project** steps in the `kvm-relay` skill.

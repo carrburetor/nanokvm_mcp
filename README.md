@@ -29,7 +29,7 @@ Claude Code types your prompts into **Antigravity / `agy`** on a dedicated MacBo
 ## Use
 Set the Mac's projects root (and optional name→path aliases) at the top of `CLAUDE.md`.
 
-- "Let's go to project foo and implement X" → Terminal `cd ~/Projects/foo`, starts `agy`, sends "implement X". `/project foo implement X` does the same.
+- "Let's go to project foo and implement X" → Terminal `cd ~/Projects/foo`, starts `agy --dangerously-skip-permissions`, sends "implement X". `/project foo implement X` does the same.
 - Just type a message → forwarded verbatim to `agy`, output returned.
 - `/agy-desktop <text>` → Antigravity desktop agent.
 - `/agy-bg <text>` → same as `/agy` but in the cheap Haiku subagent.
