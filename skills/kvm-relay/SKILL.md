@@ -29,6 +29,18 @@ Examples: Cmd+Space `["MetaLeft","Space"]`, Ctrl+C `["ControlLeft","KeyC"]`, Cmd
 `cube_press_keys(["MetaLeft","Space"])` → `cube_type_text("Terminal")` (or `"Antigravity"`) → `cube_press_keys(["Enter"])`.
 Only re-focus if the last screenshot shows the wrong app.
 
+## Switch project (CLI)
+1. Focus Terminal. If an agy session is running, exit it first (`/exit` + Enter, or Ctrl+C twice) so you're at a shell prompt.
+2. Resolve the path: a "Known projects" entry from CLAUDE.md, else `<projects root>/<name>`.
+3. Type `cd "<path>" && clear && pwd`, Enter. Screenshot once.
+   - If it says "No such file or directory": type `ls <projects root>`, Enter, screenshot, show the user the list and ask which one. Don't guess.
+4. Type `agy`, Enter; wait for its prompt (one screenshot).
+5. If the user gave a task with the switch, send it now as below.
+Reply to the user with one line: `In <path>, agy ready.` plus agy's output if a task was sent.
+
+## Switch project (desktop)
+Focus Antigravity, Cmd+O (`["MetaLeft","KeyO"]`), Cmd+Shift+G (`["MetaLeft","ShiftLeft","KeyG"]`), type the path, Enter, Enter. Screenshot once to confirm, then send any task in the agent chat.
+
 ## CLI (agy in Terminal)
 - If a shell prompt is showing (no agy session): type `agy`, `Enter`, wait for its prompt.
 - Send the user's text with `cube_type_text` (split into ≤1000-char chunks, `delayMs: 10` for long text). Join multi-line text with spaces unless agy shows a multi-line convention. Then `cube_press_keys(["Enter"])`.

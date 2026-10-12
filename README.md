@@ -9,7 +9,7 @@ Claude Code types your prompts into **Antigravity / `agy`** on a dedicated MacBo
 | `CLAUDE.md` | Relay-only rules (verbatim forwarding, no coding, token-frugal) |
 | `skills/kvm-relay/` | Step-by-step procedure: focus app, type, submit, wait, transcribe |
 | `agents/kvm-relay.md` | Haiku subagent that does the screenshot loop out of the main context |
-| `commands/` | `/agy`, `/agy-desktop`, `/agy-bg`, `/screen`, `/key` |
+| `commands/` | `/project`, `/agy`, `/agy-desktop`, `/agy-bg`, `/screen`, `/key` |
 | `.claude/settings.json` | Auto-allows the NanoKVM `cube_*` tools |
 | `.claude-plugin/` | Same thing packaged as an installable plugin |
 
@@ -27,6 +27,9 @@ Claude Code types your prompts into **Antigravity / `agy`** on a dedicated MacBo
 **Network:** Claude Code must be able to reach the NanoKVM's IP. A claude.ai cloud session can't see your LAN — run Claude Code on a machine on the same network, or expose the NanoKVM via Tailscale/VPN.
 
 ## Use
+Set the Mac's projects root (and optional name→path aliases) at the top of `CLAUDE.md`.
+
+- "Let's go to project foo and implement X" → Terminal `cd ~/Projects/foo`, starts `agy`, sends "implement X". `/project foo implement X` does the same.
 - Just type a message → forwarded verbatim to `agy`, output returned.
 - `/agy-desktop <text>` → Antigravity desktop agent.
 - `/agy-bg <text>` → same as `/agy` but in the cheap Haiku subagent.
