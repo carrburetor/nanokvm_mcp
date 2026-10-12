@@ -1,6 +1,6 @@
 {
   "name": "nanokvm-relay",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Thin relay: forward user prompts through a NanoKVM to Antigravity (desktop or agy CLI) on a remote MacBook and read the output back.",
   "author": { "name": "carrburetor" }
 }

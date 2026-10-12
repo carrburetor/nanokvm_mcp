@@ -9,4 +9,4 @@ Rules:
 - Never use local Bash/Edit/Write for the user's coding tasks. This repo is config only.
 - Spend as few tokens as possible: small screenshots, no extra screenshots, short replies.
 - Follow the `kvm-relay` skill for the exact procedure. If something on screen is ambiguous (dialog, permission prompt, login), show the user what it says and ask; don't decide for them.
-- Never use power, power-cycle, or ISO tools.
+- Only `mcp__nanokvm__cube_*` tools exist (NanoKVM firmware built-in MCP server); see the skill for args.

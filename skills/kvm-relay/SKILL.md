@@ -1,37 +1,47 @@
 ---
 name: kvm-relay
-description: Procedure for relaying a user prompt through the NanoKVM MCP to Antigravity (desktop app or agy CLI) on the remote Mac and reading the output back. Use for every user message in this project.
+description: Procedure for relaying a user prompt through the NanoKVM built-in MCP server (cube_* tools) to Antigravity (desktop app or agy CLI) on the remote Mac and reading the output back. Use for every user message in this project.
 ---
 
 # KVM relay procedure
 
-Target: macOS. Cmd = `meta: true`. Default target is the **agy CLI in Terminal** (cheapest to read). Use the Antigravity desktop app only when the user says "desktop" / "agy desktop" / `/agy-desktop`.
+Target: macOS via the NanoKVM firmware's built-in MCP server (`mcp__nanokvm__cube_*`).
+Default target is the **agy CLI in Terminal** (cheapest to read). Use the Antigravity desktop app only when the user says "desktop" / `/agy-desktop`.
 
-## Screenshots (the only return channel — keep them cheap)
-- Default: `nanokvm_screenshot(max_width=1280, max_height=800, quality=50)`.
-- Need to read small text: `max_width=1920, max_height=1200, quality=60`. Never go above.
-- One screenshot per check. Do not screenshot after every keystroke.
-- Mouse coordinates are in NANOKVM_SCREEN_WIDTH x HEIGHT space. If you used a downscaled screenshot, scale coordinates up by the same ratio. Prefer keyboard over mouse.
+## Tools (built-in NanoKVM MCP)
+| Tool | Args |
+|---|---|
+| `cube_type_text` | `text` (≤1000 chars), `delayMs` (0–1000, default 30) |
+| `cube_press_keys` | `keys`: one shortcut as KeyboardEvent.code names, e.g. `["MetaLeft","Space"]`; `holdMs` |
+| `cube_screenshot` | `quality` (device clamps to 51–60), `timeoutMs` |
+| `cube_move_mouse` | `mode:"absolute"`, `x`,`y` **normalized 0–1**; or `mode:"relative"`, `deltaX`/`deltaY` |
+| `cube_click_mouse` | `button`, `mode:"absolute"`, `x`,`y` (0–1); or `mode:"relative"` with no coords |
+| `cube_scroll_mouse` | `deltaY` (positive = down) |
+
+Key names: `MetaLeft` (Cmd), `ControlLeft`, `AltLeft` (Option), `ShiftLeft`, `Enter`, `Escape`, `Tab`, `Space`, `Backspace`, `ArrowUp/Down/Left/Right`, `PageUp/PageDown`, `KeyA`–`KeyZ`, `Digit0`–`Digit9`, `F1`–`F12`.
+Examples: Cmd+Space `["MetaLeft","Space"]`, Ctrl+C `["ControlLeft","KeyC"]`, Cmd+Tab `["MetaLeft","Tab"]`.
+
+## Screenshots (the only return channel — keep them rare)
+- `cube_screenshot(quality=51)`. One per check; never after every keystroke.
+- Mouse coords are fractions of the screen: x = px / image_width, y = px / image_height. Prefer keyboard over mouse.
 
 ## Focusing an app (keyboard only)
-1. `nanokvm_send_key(key="space", meta=true)` (Spotlight)
-2. `nanokvm_send_text("Terminal")` or `"Antigravity"`, then `nanokvm_send_key("enter")`.
+`cube_press_keys(["MetaLeft","Space"])` → `cube_type_text("Terminal")` (or `"Antigravity"`) → `cube_press_keys(["Enter"])`.
 Only re-focus if the last screenshot shows the wrong app.
 
 ## CLI (agy in Terminal)
-- If no agy session is running (shell prompt visible): `nanokvm_send_text("agy")`, `enter`, wait for its prompt.
-- Send the user's prompt with `nanokvm_send_text(<prompt>)` (split into ≤1000-char chunks; for multi-line text use the agy multi-line convention shown on screen, else join lines with spaces), then `nanokvm_send_key("enter")`.
-- Wait: take a screenshot; if agy is still working (spinner / "thinking" / streaming), screenshot again after a short pause. Back off — don't poll rapidly.
-- When idle, transcribe only the **new** output since the prompt. If it scrolls past one screen, use `nanokvm_scroll(-5)` / `pageup` and stitch, reporting only once.
+- If a shell prompt is showing (no agy session): type `agy`, `Enter`, wait for its prompt.
+- Send the user's text with `cube_type_text` (split into ≤1000-char chunks, `delayMs: 10` for long text). Join multi-line text with spaces unless agy shows a multi-line convention. Then `cube_press_keys(["Enter"])`.
+- Wait, then screenshot. If agy is still working (spinner / thinking / streaming), wait longer and screenshot again. Back off; don't poll rapidly.
+- When idle, transcribe only the **new** output since the prompt. If it ran off-screen, `cube_scroll_mouse(deltaY=-5)` and stitch; report once.
 - If agy asks for approval/confirmation, show the user the exact question and options; send their answer as-is.
 
 ## Desktop (Antigravity app)
-- Focus the agent chat input (click it once; remember its coordinates for the session).
-- `nanokvm_send_text(<prompt>)`, `enter`, then wait/read as above, transcribing only the agent's reply.
+- Click the agent chat input once (remember its normalized coords for the session), type, `Enter`, then wait/read as above, transcribing only the agent's reply.
 
 ## Special keys the user may ask for
-`ctrl+c` → `send_key("c", ctrl=true)`, `esc` → `send_key("escape")`, `y`/`n` → `send_text`, `up` for history.
-Stuck keyboard/mouse → `nanokvm_reset_hid()`. Black screen → `nanokvm_hdmi_status()` then tell the user.
+ctrl+c → `["ControlLeft","KeyC"]`, esc → `["Escape"]`, y/n → `cube_type_text`, history → `["ArrowUp"]`.
+Tool errors about control mode / lease: the NanoKVM MCP is disabled or another controller (web UI, PicoClaw) holds input — tell the user.
 
 ## Reply format to the user
-Plain transcription of target output in a code block, plus at most one line of status (e.g. "agy waiting for approval"). Nothing else.
+Plain transcription of target output in a code block, plus at most one status line (e.g. "agy waiting for approval"). Nothing else.

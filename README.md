@@ -5,22 +5,22 @@ Claude Code types your prompts into **Antigravity / `agy`** on a dedicated MacBo
 ## Contents
 | Path | What it is |
 |---|---|
-| `.mcp.json` | NanoKVM MCP server ([scgreenhalgh/nanokvm-mcp](https://github.com/scgreenhalgh/nanokvm-mcp)) via `uvx` |
+| `.mcp.json` | NanoKVM firmware's built-in MCP server ([sipeed/NanoKVM](https://github.com/sipeed/NanoKVM), `/api/mcp`, tools `cube_*`) |
 | `CLAUDE.md` | Relay-only rules (verbatim forwarding, no coding, token-frugal) |
 | `skills/kvm-relay/` | Step-by-step procedure: focus app, type, submit, wait, transcribe |
 | `agents/kvm-relay.md` | Haiku subagent that does the screenshot loop out of the main context |
 | `commands/` | `/agy`, `/agy-desktop`, `/agy-bg`, `/screen`, `/key` |
-| `.claude/settings.json` | Auto-allows NanoKVM tools; blocks power/ISO tools |
+| `.claude/settings.json` | Auto-allows the NanoKVM `cube_*` tools |
 | `.claude-plugin/` | Same thing packaged as an installable plugin |
 
 ## Setup
-1. Install [uv](https://docs.astral.sh/uv/) (provides `uvx`).
-2. Export the NanoKVM connection info, e.g.:
+1. NanoKVM web UI → **Settings > MCP**: enable it and copy the endpoint and API key.
+2. Export them for Claude Code:
    ```sh
-   export NANOKVM_HOST=192.168.1.50
-   export NANOKVM_USER=admin NANOKVM_PASS=yourpass
-   export NANOKVM_SCREEN_WIDTH=1920 NANOKVM_SCREEN_HEIGHT=1080   # Mac's HDMI output resolution
+   export NANOKVM_URL=http://192.168.1.50      # no trailing slash; /api/mcp is appended
+   export NANOKVM_MCP_KEY=<api key>
    ```
+   Already added it in Claude Desktop? Name that server **`nanokvm`** so tool names match `mcp__nanokvm__cube_*` used by the agent/skill.
 3. Run `claude` in this repo. (Or elsewhere: `/plugin marketplace add carrburetor/nanokvm_mcp` then `/plugin install nanokvm-relay@nanokvm-relay`.)
 4. On the Mac: open Terminal (and/or Antigravity) and log in. Disable sleep/screen lock.
 

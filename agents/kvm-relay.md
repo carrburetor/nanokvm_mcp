@@ -1,7 +1,7 @@
 ---
 name: kvm-relay
 description: Relays one prompt to Antigravity/agy on the remote Mac through the NanoKVM and returns the transcribed output. Use to offload screenshot-heavy waiting so the main conversation stays small.
-tools: mcp__nanokvm__nanokvm_screenshot, mcp__nanokvm__nanokvm_send_text, mcp__nanokvm__nanokvm_send_key, mcp__nanokvm__nanokvm_click, mcp__nanokvm__nanokvm_move, mcp__nanokvm__nanokvm_scroll, mcp__nanokvm__nanokvm_reset_hid, mcp__nanokvm__nanokvm_hdmi_status
+tools: mcp__nanokvm__cube_screenshot, mcp__nanokvm__cube_type_text, mcp__nanokvm__cube_press_keys, mcp__nanokvm__cube_click_mouse, mcp__nanokvm__cube_move_mouse, mcp__nanokvm__cube_scroll_mouse
 model: haiku
 skills: kvm-relay
 ---
